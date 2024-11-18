@@ -1,0 +1,102 @@
+-- servicios
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- establecer valores de jump y walk speed
+local defaultJumpPower = 30
+local hackJumpPower = 50
+local normalWalkSpeed = 32
+local highWalkSpeed = 44
+
+-- función para establecer el jump power
+local function setJumpPower(jumpPower)
+if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = jumpPower
+end
+end
+
+-- función para establecer el walk speed
+local function setWalkSpeed(speed)
+if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
+end
+end
+
+-- actualizar el jump power y walk speed cuando el personaje del jugador aparece
+LocalPlayer.CharacterAdded:Connect(function(character)
+local humanoid = character:WaitForChild("Humanoid")
+humanoid.JumpPower = defaultJumpPower
+humanoid.WalkSpeed = normalWalkSpeed
+end)
+
+-- asegurar la configuración inicial si el personaje ya está cargado
+if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+local humanoid = LocalPlayer.Character.Humanoid
+humanoid.JumpPower = defaultJumpPower
+humanoid.WalkSpeed = normalWalkSpeed
+end
+
+-- manejar eventos de teclas para cambiar el jump power
+local jumpKeyDown = false
+UserInputService.InputBegan:Connect(function(input)
+if input.KeyCode == Enum.KeyCode.E then
+jumpKeyDown = true
+end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+if input.KeyCode == Enum.KeyCode.E then
+jumpKeyDown = false
+end
+end)
+
+-- verificar continuamente para asegurar que el jump power y walk speed sean correctos
+RunService.RenderStepped:Connect(function()
+local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+if humanoid then
+if jumpKeyDown then
+humanoid.JumpPower = hackJumpPower
+else
+humanoid.JumpPower = defaultJumpPower
+end
+
+if humanoid.WalkSpeed > normalWalkSpeed then
+humanoid.WalkSpeed = highWalkSpeed
+else
+humanoid.WalkSpeed = normalWalkSpeed
+end
+end
+end)
+
+-- bucle principal para verificar continuamente
+RunService.RenderStepped:Connect(checkAndAdjustStats)
+
+local player = game:GetService("Players").LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+
+local humanoidRootPart = char:WaitForChild("HumanoidRootPart")
+local humanoid = char:WaitForChild("Humanoid")
+
+local jumpUsage = 1.5
+
+local uis = game:GetService("UserInputService")
+
+uis.InputBegan:Connect(function(key, gp)
+	if key.KeyCode == Enum.KeyCode.Space and not gp then
+		if humanoidRootPart and humanoid then
+			if humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+				if jumpUsage >= 1 then
+					jumpUsage -= 1
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping, true)
+					humanoid.StateChanged:Connect(function(old, new)
+						if new == Enum.HumanoidStateType.Landed then
+							jumpUsage = 1
+						end
+					end)
+				end
+			end
+		end
+	end
+end)
