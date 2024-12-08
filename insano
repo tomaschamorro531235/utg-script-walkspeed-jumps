@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local defaultJumpPower = 30
 local hackJumpPower = 50
 local normalWalkSpeed = 32
-local highWalkSpeed = 44
+local highWalkSpeed = 48
 
 -- función para establecer el jump power
 local function setJumpPower(jumpPower)
